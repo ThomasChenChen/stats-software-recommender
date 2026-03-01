@@ -1,404 +1,942 @@
 <!doctype html>
-<html lang="en">
+<html lang='en'>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stats Software Recommender (Psych Students)</title>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>Stats Software Recommender</title>
   <style>
-    :root { --radius: 14px; --shadow: 0 10px 30px rgba(0,0,0,.08); }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
-    header { padding: 28px 18px; background: white; box-shadow: var(--shadow); }
-    main { max-width: 980px; margin: 0 auto; padding: 18px; }
-    h1 { margin: 0 0 6px; font-size: 22px; }
-    p.lead { margin: 0; color: #444; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
-    @media (min-width: 860px) { .grid { grid-template-columns: 1.1fr .9fr; } }
-    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
-    .card h2 { margin: 0 0 10px; font-size: 16px; }
-    .q { margin: 12px 0; padding: 12px; border: 1px solid #eee; border-radius: 12px; }
-    .q legend { font-weight: 650; }
-    label { display: block; margin: 6px 0; cursor: pointer; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    button { border: 0; border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 650; }
-    button.primary { background: #111; color: white; }
-    button.ghost { background: #eef1ff; color: #111; }
-    .results { display: grid; gap: 12px; }
-    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #f1f3f5; font-size: 12px; margin-left: 8px; }
-    .rec { border: 1px solid #eee; border-radius: 14px; padding: 14px; }
-    .rec h3 { margin: 0 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .muted { color: #555; font-size: 13px; }
-    ul { margin: 8px 0 0 18px; }
-    .footer { margin-top: 20px; color: #666; font-size: 12px; }
-    a { color: inherit; }
+    :root{
+      --bg:#f6f7fb;
+      --card:#fff;
+      --text:#111;
+      --muted:#555;
+      --line:#e9ecef;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --r:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+    header{background:var(--card);box-shadow:var(--shadow);padding:22px 18px;}
+    header h1{margin:0 0 6px;font-size:22px;}
+    header p{margin:0;color:var(--muted);line-height:1.35;}
+    main{max-width:1100px;margin:0 auto;padding:18px;display:grid;grid-template-columns:1fr;gap:14px;}
+    @media(min-width:980px){main{grid-template-columns:1.05fr .95fr;}}
+    .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;}
+    .card h2{margin:0 0 10px;font-size:16px;}
+    .q{border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0;}
+    .q legend{font-weight:700;}
+    label{display:block;margin:7px 0;cursor:pointer;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700;}
+    button.primary{background:#111;color:#fff;}
+    button.ghost{background:#eef1ff;color:#111;}
+    button.light{background:#f1f3f5;color:#111;}
+    .muted{color:var(--muted);font-size:13px;line-height:1.35;}
+    .results{display:grid;gap:12px;}
+    .rec{border:1px solid var(--line);border-radius:14px;padding:14px;}
+    .rec h3{margin:0 0 6px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#f1f3f5;font-size:12px;}
+    .kvs{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px;}
+    @media(min-width:720px){.kvs{grid-template-columns:1fr 1fr;}}
+    .kv{border:1px solid var(--line);border-radius:12px;padding:10px;}
+    .kv b{display:block;font-size:12px;}
+    .kv code{font-family:var(--mono);font-size:12px;}
+    a{color:inherit;}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0;}
+    .tab{padding:8px 10px;border-radius:999px;border:1px solid var(--line);cursor:pointer;background:#fff;}
+    .tab[aria-selected='true']{background:#111;color:#fff;border-color:#111;}
+    .bar{height:10px;border-radius:999px;background:#eef1ff;overflow:hidden;margin-top:6px;}
+    .bar > i{display:block;height:100%;background:#111;width:0%;}
+    .tiny{font-size:12px;color:var(--muted);}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;}
+    th,td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px;}
+    th{position:sticky;top:0;background:#fff;z-index:1;text-align:left;}
+    tr:last-child td{border-bottom:0;}
+    .tableWrap{max-height:420px;overflow:auto;border-radius:14px;border:1px solid var(--line);}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0;}
+    select,input[type='text']{padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:#fff;}
+    .twoCol{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:720px){.twoCol{grid-template-columns:1fr 1fr;}}
+    details{border:1px solid var(--line);border-radius:14px;padding:10px;}
+    details > summary{cursor:pointer;font-weight:700;}
+    .mono{font-family:var(--mono);}
+    .copyRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
   </style>
 </head>
 <body>
   <header>
     <h1>Stats Software Recommender</h1>
-    <p class="lead">Answer a few questions to get the best-fit tools for your psychology stats workflow.</p>
+    <p>Designed for psychology students: answer a few questions to get ranked recommendations, a transparent scoring breakdown, and a comparison table you can share.</p>
   </header>
 
-  <main class="grid">
-    <section class="card">
+  <main>
+    <section class='card'>
       <h2>Questions</h2>
 
-      <!-- Q1: Tasks -->
-      <fieldset class="q">
-        <legend>1) What do you need to do? (select all that apply)</legend>
-        <label><input type="checkbox" name="tasks" value="basic_tests"> Basic tests (t-test / ANOVA / regression)</label>
-        <label><input type="checkbox" name="tasks" value="repeated"> Repeated measures / mixed designs</label>
-        <label><input type="checkbox" name="tasks" value="reliability"> Scale reliability / EFA (intro level)</label>
-        <label><input type="checkbox" name="tasks" value="bayesian"> Bayesian analysis</label>
-        <label><input type="checkbox" name="tasks" value="viz_report"> Nice figures / report-ready output</label>
-        <label><input type="checkbox" name="tasks" value="ml"> Machine learning / prediction</label>
+      <fieldset class='q'>
+        <legend>1) What do you need to do? (select all)</legend>
+        <label><input type='checkbox' name='tasks' value='basic_tests'> Basic tests (t-test / ANOVA / regression)</label>
+        <label><input type='checkbox' name='tasks' value='repeated'> Repeated measures / mixed designs</label>
+        <label><input type='checkbox' name='tasks' value='reliability'> Scale reliability / EFA (intro level)</label>
+        <label><input type='checkbox' name='tasks' value='bayesian'> Bayesian analysis</label>
+        <label><input type='checkbox' name='tasks' value='viz_report'> Nice figures / report-ready output</label>
+        <label><input type='checkbox' name='tasks' value='repro'> Reproducible workflow (scripts, pipelines)</label>
+        <label><input type='checkbox' name='tasks' value='ml'> Machine learning / prediction</label>
       </fieldset>
 
-      <!-- Q2: Coding -->
-      <fieldset class="q">
-        <legend>2) Coding experience</legend>
-        <label><input type="radio" name="coding" value="none" checked> No coding</label>
-        <label><input type="radio" name="coding" value="some"> A little</label>
-        <label><input type="radio" name="coding" value="high"> Comfortable</label>
-      </fieldset>
+      <div class='twoCol'>
+        <fieldset class='q'>
+          <legend>2) Coding experience</legend>
+          <label><input type='radio' name='coding' value='none' checked> No coding</label>
+          <label><input type='radio' name='coding' value='some'> A little</label>
+          <label><input type='radio' name='coding' value='high'> Comfortable</label>
+        </fieldset>
 
-      <!-- Q3: Cost -->
-      <fieldset class="q">
-        <legend>3) Budget</legend>
-        <label><input type="radio" name="cost" value="free" checked> Must be free</label>
-        <label><input type="radio" name="cost" value="any"> Paid is OK</label>
-      </fieldset>
+        <fieldset class='q'>
+          <legend>3) Budget</legend>
+          <label><input type='radio' name='cost' value='free' checked> Must be free</label>
+          <label><input type='radio' name='cost' value='any'> Paid is OK</label>
+        </fieldset>
 
-      <!-- Q4: Interface preference -->
-      <fieldset class="q">
-        <legend>4) Preferred style</legend>
-        <label><input type="radio" name="style" value="gui" checked> Clickable GUI</label>
-        <label><input type="radio" name="style" value="code"> Code</label>
-        <label><input type="radio" name="style" value="either"> Either</label>
-      </fieldset>
+        <fieldset class='q'>
+          <legend>4) Preferred style</legend>
+          <label><input type='radio' name='style' value='gui' checked> Clickable GUI</label>
+          <label><input type='radio' name='style' value='code'> Code</label>
+          <label><input type='radio' name='style' value='either'> Either</label>
+        </fieldset>
 
-      <!-- Q5: Learning curve -->
-      <fieldset class="q">
-        <legend>5) Learning curve tolerance</legend>
-        <label><input type="radio" name="curve" value="low" checked> I need something fast</label>
-        <label><input type="radio" name="curve" value="mid"> I can learn for a few days</label>
-        <label><input type="radio" name="curve" value="high"> I can invest long-term</label>
-      </fieldset>
+        <fieldset class='q'>
+          <legend>5) Learning curve tolerance</legend>
+          <label><input type='radio' name='curve' value='low' checked> I need something fast</label>
+          <label><input type='radio' name='curve' value='mid'> I can learn for a few days</label>
+          <label><input type='radio' name='curve' value='high'> I can invest long-term</label>
+        </fieldset>
 
-      <!-- Q6: Platform -->
-      <fieldset class="q">
-        <legend>6) Platform</legend>
-        <label><input type="radio" name="platform" value="win" checked> Windows</label>
-        <label><input type="radio" name="platform" value="mac"> macOS</label>
-        <label><input type="radio" name="platform" value="any"> Both / not sure</label>
-      </fieldset>
+        <fieldset class='q'>
+          <legend>6) Platform</legend>
+          <label><input type='radio' name='platform' value='win' checked> Windows</label>
+          <label><input type='radio' name='platform' value='mac'> macOS</label>
+          <label><input type='radio' name='platform' value='any'> Both / not sure</label>
+        </fieldset>
 
-      <div class="row">
-        <button class="primary" id="btnRecommend">Get recommendations</button>
-        <button class="ghost" id="btnReset" type="button">Reset</button>
+        <fieldset class='q'>
+          <legend>7) Course requirement</legend>
+          <label><input type='radio' name='courseReq' value='none' checked> No requirement</label>
+          <label><input type='radio' name='courseReq' value='spss'> Must use SPSS</label>
+          <label><input type='radio' name='courseReq' value='r'> Must use R</label>
+          <label><input type='radio' name='courseReq' value='jamovi'> Must use jamovi</label>
+          <label><input type='radio' name='courseReq' value='jasp'> Must use JASP</label>
+        </fieldset>
       </div>
 
-      <div class="footer">
-        <p><strong>Note:</strong> This tool provides suggestions, not statistical consulting. Always follow your course requirements.</p>
+      <details>
+        <summary>Advanced: adjust scoring weights</summary>
+        <p class='muted'>Weights change how strongly each criterion affects the ranking. For a public student tool, defaults are usually best.</p>
+        <div class='twoCol' id='weightsBox'></div>
+      </details>
+
+      <div class='row' style='margin-top:10px;'>
+        <button class='primary' id='btnRecommend'>Get recommendations</button>
+        <button class='ghost' id='btnReset' type='button'>Reset</button>
+        <button class='light' id='btnShare' type='button'>Copy share link</button>
+      </div>
+
+      <div class='muted' style='margin-top:10px;'>
+        Note: This provides suggestions, not statistical consulting. Always follow your course requirements.
       </div>
     </section>
 
-    <aside class="card">
-      <h2>Recommendations</h2>
-      <div id="out" class="results">
-        <p class="muted">Your results will appear here.</p>
+    <aside class='card'>
+      <h2>Results</h2>
+
+      <div class='tabs'>
+        <button class='tab' id='tabRecs' aria-selected='true'>Recommendations</button>
+        <button class='tab' id='tabCompare' aria-selected='false'>Comparison table</button>
+      </div>
+
+      <div id='paneRecs'>
+        <div id='out' class='results' style='margin-top:12px;'>
+          <p class='muted'>Your results will appear here.</p>
+        </div>
+
+        <div class='card' style='margin-top:12px;padding:14px;border:1px solid var(--line);box-shadow:none;'>
+          <h2 style='margin-top:0;'>Share link</h2>
+          <div class='copyRow'>
+            <input id='shareUrl' type='text' style='flex:1;min-width:220px;' readonly />
+            <button class='light' id='btnCopyUrl' type='button'>Copy</button>
+          </div>
+          <p class='tiny'>Anyone opening this link will see the same answers and ranking.</p>
+        </div>
+      </div>
+
+      <div id='paneCompare' style='display:none;margin-top:12px;'>
+        <div class='controls'>
+          <label class='muted'>Show:</label>
+          <select id='compareScope'>
+            <option value='all'>All tools</option>
+            <option value='top3'>Top 3 only</option>
+          </select>
+          <label class='muted'>Sort by:</label>
+          <select id='sortBy'>
+            <option value='rank'>Rank score</option>
+            <option value='analysisBreadth'>Analysis breadth</option>
+            <option value='bayesianDepth'>Bayesian depth</option>
+            <option value='reproducibility'>Reproducibility</option>
+            <option value='vizStrength'>Visualization</option>
+            <option value='learningCurve'>Learning curve</option>
+          </select>
+          <input id='searchBox' type='text' placeholder='Filter by name...' />
+        </div>
+
+        <div class='tableWrap'>
+          <table>
+            <thead>
+              <tr>
+                <th>Tool</th>
+                <th>Cost</th>
+                <th>Style</th>
+                <th>Platforms</th>
+                <th>Best for</th>
+                <th>Analysis breadth</th>
+                <th>Bayes</th>
+                <th>RM/mixed</th>
+                <th>Repro</th>
+                <th>Viz</th>
+                <th>Extend</th>
+                <th>Docs</th>
+                <th>Community</th>
+              </tr>
+            </thead>
+            <tbody id='compareBody'></tbody>
+          </table>
+        </div>
+
+        <p class='tiny' style='margin-top:10px;'>Levels use 0–5 scales where higher is stronger, except learning curve where higher means harder.</p>
       </div>
     </aside>
   </main>
 
   <script>
     // -----------------------------
-    // 1) Software "database"
+    // 中文說明 1：資料庫設計（越完整，推薦越精準）
+    // 你想要的‘更多細節’，就是把每套工具做成一筆結構化資料。
+    // 下面這份欄位足夠支撐：精準打分、自然語言理由、比較表。
     // -----------------------------
-    // 你可以在這裡新增/刪除軟體。每個軟體是一個物件：
-    // - tags: 支援任務
-    // - cost: "free" / "paid" / "mixed"
-    // - style: "gui" / "code" / "both"
-    // - codingMin: "none" / "some" / "high"
-    // - curve: "low" / "mid" / "high" (學習曲線)
-    // - platforms: ["win","mac","linux","web"]
-    // - pros/cons: 用來生成推薦理由（英文內容）
+
     const SOFTWARE = [
       {
-        name: "JASP",
-        url: "https://jasp-stats.org/",
-        tags: ["basic_tests", "reliability", "bayesian", "viz_report"],
-        cost: "free",
-        style: "gui",
-        codingMin: "none",
-        curve: "low",
-        platforms: ["win", "mac", "linux"],
-        pros: [
-          "Beginner-friendly GUI",
-          "Great for Bayesian analysis without coding",
-          "Clean tables suitable for reports"
-        ],
-        cons: [
-          "Less flexible for custom pipelines compared to R/Python"
-        ]
+        id: 'jasp',
+        name: 'JASP',
+        url: 'https://jasp-stats.org/',
+        cost: 'free',            // 'free' | 'paid' | 'mixed'
+        style: 'gui',            // 'gui' | 'code' | 'both'
+        platforms: ['win','mac','linux'],
+        codingMin: 'none',       // 'none' | 'some' | 'high'
+        learningCurve: 1,        // 0-5 (higher = harder)
+        analysisBreadth: 4,      // 0-5
+        bayesianDepth: 4,        // 0-5
+        rmMixed: 3,              // 0-5
+        reproducibility: 2,      // 0-5
+        vizStrength: 3,          // 0-5
+        extendibility: 2,        // 0-5
+        docsQuality: 3,          // 0-5
+        community: 3,            // 0-5
+        dataHandling: 2,         // 0-5 (import, transform convenience)
+        bestFor: ['coursework', 'bayesian', 'fast gui', 'clean tables'],
+        tags: ['basic_tests','reliability','bayesian','viz_report','repeated']
       },
       {
-        name: "jamovi",
-        url: "https://www.jamovi.org/",
-        tags: ["basic_tests", "reliability", "viz_report"],
-        cost: "free",
-        style: "gui",
-        codingMin: "none",
-        curve: "low",
-        platforms: ["win", "mac", "linux"],
-        pros: [
-          "Very easy to learn",
-          "Expandable via modules",
-          "Good for common analyses in classes"
-        ],
-        cons: [
-          "Advanced modeling options may require R"
-        ]
+        id: 'jamovi',
+        name: 'jamovi',
+        url: 'https://www.jamovi.org/',
+        cost: 'free',
+        style: 'gui',
+        platforms: ['win','mac','linux'],
+        codingMin: 'none',
+        learningCurve: 1,
+        analysisBreadth: 3,
+        bayesianDepth: 2,
+        rmMixed: 3,
+        reproducibility: 2,
+        vizStrength: 3,
+        extendibility: 3,
+        docsQuality: 3,
+        community: 3,
+        dataHandling: 3,
+        bestFor: ['coursework', 'modules', 'easy gui'],
+        tags: ['basic_tests','reliability','viz_report','repeated']
       },
       {
-        name: "SPSS",
-        url: "https://www.ibm.com/spss",
-        tags: ["basic_tests", "reliability", "repeated", "viz_report"],
-        cost: "paid",
-        style: "gui",
-        codingMin: "none",
-        curve: "low",
-        platforms: ["win", "mac"],
-        pros: [
-          "Common in psychology courses",
-          "GUI workflows are straightforward",
-          "Strong for standard tests and reliability"
-        ],
-        cons: [
-          "Paid license required",
-          "Less transparent / reproducible than code-based tools"
-        ]
+        id: 'spss',
+        name: 'SPSS',
+        url: 'https://www.ibm.com/spss',
+        cost: 'paid',
+        style: 'gui',
+        platforms: ['win','mac'],
+        codingMin: 'none',
+        learningCurve: 1,
+        analysisBreadth: 3,
+        bayesianDepth: 0,
+        rmMixed: 3,
+        reproducibility: 1,
+        vizStrength: 2,
+        extendibility: 1,
+        docsQuality: 3,
+        community: 3,
+        dataHandling: 3,
+        bestFor: ['coursework', 'department standard', 'classic gui'],
+        tags: ['basic_tests','reliability','viz_report','repeated']
       },
       {
-        name: "R (RStudio)",
-        url: "https://posit.co/download/rstudio-desktop/",
-        tags: ["basic_tests", "repeated", "reliability", "viz_report"],
-        cost: "free",
-        style: "code",
-        codingMin: "some",
-        curve: "high",
-        platforms: ["win", "mac", "linux"],
-        pros: [
-          "Extremely flexible and widely used in research",
-          "Best for reproducible analysis pipelines",
-          "Huge ecosystem for stats and graphics"
-        ],
-        cons: [
-          "Steeper learning curve for beginners"
-        ]
+        id: 'r',
+        name: 'R (RStudio)',
+        url: 'https://posit.co/download/rstudio-desktop/',
+        cost: 'free',
+        style: 'code',
+        platforms: ['win','mac','linux'],
+        codingMin: 'some',
+        learningCurve: 4,
+        analysisBreadth: 5,
+        bayesianDepth: 4,
+        rmMixed: 5,
+        reproducibility: 5,
+        vizStrength: 5,
+        extendibility: 5,
+        docsQuality: 5,
+        community: 5,
+        dataHandling: 4,
+        bestFor: ['thesis', 'advanced models', 'reproducible research'],
+        tags: ['basic_tests','reliability','viz_report','repeated','bayesian','repro']
       },
       {
-        name: "Python",
-        url: "https://www.python.org/",
-        tags: ["basic_tests", "viz_report", "ml"],
-        cost: "free",
-        style: "code",
-        codingMin: "some",
-        curve: "high",
-        platforms: ["win", "mac", "linux"],
-        pros: [
-          "Strong for machine learning and automation",
-          "Great for end-to-end projects (data → model → app)",
-          "Good for reproducibility"
-        ],
-        cons: [
-          "Not as 'stats-first' as R for many psych workflows"
-        ]
+        id: 'python',
+        name: 'Python',
+        url: 'https://www.python.org/',
+        cost: 'free',
+        style: 'code',
+        platforms: ['win','mac','linux'],
+        codingMin: 'some',
+        learningCurve: 4,
+        analysisBreadth: 4,
+        bayesianDepth: 2,
+        rmMixed: 4,
+        reproducibility: 4,
+        vizStrength: 4,
+        extendibility: 5,
+        docsQuality: 5,
+        community: 5,
+        dataHandling: 5,
+        bestFor: ['automation', 'ml', 'data pipelines'],
+        tags: ['basic_tests','viz_report','repeated','repro','ml']
       },
       {
-        name: "GraphPad Prism",
-        url: "https://www.graphpad.com/",
-        tags: ["basic_tests", "viz_report"],
-        cost: "paid",
-        style: "gui",
-        codingMin: "none",
-        curve: "low",
-        platforms: ["win", "mac"],
-        pros: [
-          "Very fast for publication-style plots",
-          "Simple workflows for common tests"
-        ],
-        cons: [
-          "Paid, and less flexible for complex models"
-        ]
+        id: 'prism',
+        name: 'GraphPad Prism',
+        url: 'https://www.graphpad.com/',
+        cost: 'paid',
+        style: 'gui',
+        platforms: ['win','mac'],
+        codingMin: 'none',
+        learningCurve: 1,
+        analysisBreadth: 3,
+        bayesianDepth: 0,
+        rmMixed: 2,
+        reproducibility: 1,
+        vizStrength: 5,
+        extendibility: 1,
+        docsQuality: 3,
+        community: 2,
+        dataHandling: 2,
+        bestFor: ['publication plots', 'fast figures'],
+        tags: ['basic_tests','viz_report']
       }
     ];
 
     const LEVEL = { none: 0, some: 1, high: 2 };
-    const CURVE = { low: 0, mid: 1, high: 2 };
+    const COST_OK = (pref, swCost) => pref === 'any' ? true : (swCost === 'free' || swCost === 'mixed');
 
-    function getCheckedValues(name) {
-      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(x => x.value);
+    // -----------------------------
+    // 中文說明 2：權重（你要‘更精準’，就是把每個維度的影響力可調）
+    // 下面這些權重會用在總分計算與‘分數構成條’。
+    // -----------------------------
+    const DEFAULT_WEIGHTS = {
+      taskMatch: 3.0,
+      cost: 2.2,
+      style: 2.0,
+      codingFit: 2.8,
+      curveFit: 1.5,
+      platformFit: 3.2,
+      analysisBreadth: 1.8,
+      bayesianDepth: 1.8,
+      rmMixed: 1.3,
+      reproducibility: 1.6,
+      vizStrength: 1.1,
+      extendibility: 0.9,
+      docsQuality: 0.6,
+      community: 0.6,
+      courseRequirement: 10.0
+    };
+
+    let WEIGHTS = { ...DEFAULT_WEIGHTS };
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function buildWeightsUI(){
+      const box = document.getElementById('weightsBox');
+      box.innerHTML = '';
+      const entries = Object.entries(WEIGHTS);
+      entries.forEach(([k,v]) => {
+        const id = 'w_' + k;
+        const wrap = document.createElement('div');
+        wrap.className = 'kv';
+        wrap.innerHTML = `
+          <b>${k}</b>
+          <div class='row'>
+            <input type='range' min='0' max='10' step='0.1' value='${v}' id='${id}' style='flex:1;' />
+            <code class='mono' id='${id}_val'>${v.toFixed(1)}</code>
+          </div>
+        `;
+        box.appendChild(wrap);
+        const slider = wrap.querySelector('#' + id);
+        const val = wrap.querySelector('#' + id + '_val');
+        slider.addEventListener('input', () => {
+          WEIGHTS[k] = parseFloat(slider.value);
+          val.textContent = WEIGHTS[k].toFixed(1);
+          // auto refresh ranking if already computed
+          if (window.__lastNeeds) runAll(window.__lastNeeds, false);
+        });
+      });
     }
-    function getRadioValue(name) {
-      const el = document.querySelector(`input[name="${name}"]:checked`);
+
+    function getCheckedValues(name){
+      return Array.from(document.querySelectorAll(`input[name='${name}']:checked`)).map(x => x.value);
+    }
+    function getRadioValue(name){
+      const el = document.querySelector(`input[name='${name}']:checked`);
       return el ? el.value : null;
     }
 
     // -----------------------------
-    // 2) Scoring function
+    // 中文說明 3：自然英文理由（把命中條件翻成像顧問的句子）
+    // 你可以在這裡改寫語氣，讓輸出更像‘懂學生’。
     // -----------------------------
-    // 中文解釋：把使用者需求轉成分數。分數越高越推薦。
-    function score(sw, needs) {
-      let s = 0;
-      const reasons = [];
+    function makeReasonSentences(sw, needs, breakdown){
+      const lines = [];
 
-      // Tasks match
-      const hits = needs.tasks.filter(t => sw.tags.includes(t));
-      if (hits.length) {
-        s += hits.length * 3;
-        reasons.push(`Matches your tasks: ${hits.join(", ")}`);
-      } else {
-        s -= 2;
-        reasons.push("Limited match for your selected tasks");
-      }
-
-      // Cost preference
-      if (needs.cost === "free") {
-        if (sw.cost === "free" || sw.cost === "mixed") {
-          s += 2;
-          reasons.push("Fits your budget: free or accessible");
+      // Course requirement override
+      if (needs.courseReq !== 'none'){
+        if (needs.courseReq === sw.id){
+          lines.push(`Your course requires ${sw.name}, so this is the safest choice.`);
         } else {
-          s -= 4;
-          reasons.push("May not fit your budget (paid license)");
-        }
-      } else {
-        // paid ok
-        s += 0;
-      }
-
-      // Interface preference
-      if (needs.style !== "either") {
-        if (sw.style === needs.style || sw.style === "both") {
-          s += 2;
-          reasons.push(`Fits your preference: ${needs.style.toUpperCase()}`);
-        } else {
-          s -= 2;
-          reasons.push(`Does not match preference: ${needs.style.toUpperCase()}`);
+          lines.push(`Your course requires ${needs.courseReq.toUpperCase()}, so consider using this only as a supplement.`);
         }
       }
 
-      // Coding ability vs requirement
-      if (LEVEL[needs.coding] >= LEVEL[sw.codingMin]) {
-        s += 1;
-        reasons.push("Learning barrier seems acceptable");
-      } else {
-        s -= 4;
-        reasons.push("Likely too difficult given your coding experience");
+      // Task-oriented reasons
+      if (needs.tasks.includes('bayesian') && sw.bayesianDepth > 0){
+        lines.push(`You selected Bayesian analysis, and ${sw.name} supports it at a depth level of ${sw.bayesianDepth}/5.`);
+      }
+      if (needs.tasks.includes('repeated') && sw.rmMixed > 0){
+        lines.push(`You need repeated measures or mixed designs, and ${sw.name} scores ${sw.rmMixed}/5 for RM/mixed support.`);
+      }
+      if (needs.tasks.includes('repro') && sw.reproducibility > 0){
+        lines.push(`You care about reproducibility, and ${sw.name} is rated ${sw.reproducibility}/5 for reproducible workflows.`);
+      }
+      if (needs.tasks.includes('ml') && sw.tags.includes('ml')){
+        lines.push(`You selected machine learning, and ${sw.name} is a strong choice for prediction workflows.`);
+      }
+      if (needs.tasks.includes('viz_report') && sw.vizStrength > 0){
+        lines.push(`You want report-ready output, and ${sw.name} has visualization strength ${sw.vizStrength}/5.`);
       }
 
-      // Learning curve tolerance
-      if (CURVE[needs.curve] >= CURVE[sw.curve]) {
-        s += 1;
-        reasons.push("Learning curve fits your tolerance");
-      } else {
-        s -= 2;
-        reasons.push("Learning curve may be too steep");
-      }
-
-      // Platform support
-      if (needs.platform !== "any") {
-        if (sw.platforms.includes(needs.platform)) {
-          s += 1;
-          reasons.push(`Supports your platform: ${needs.platform}`);
+      // Style + coding
+      if (needs.style !== 'either'){
+        if (sw.style === needs.style || sw.style === 'both'){
+          lines.push(`It matches your preferred workflow style: ${needs.style.toUpperCase()}.`);
         } else {
-          s -= 6;
-          reasons.push(`Not available on your platform: ${needs.platform}`);
+          lines.push(`It may feel less natural because you preferred ${needs.style.toUpperCase()}.`);
         }
       }
 
-      // Specific nudges
-      if (needs.tasks.includes("bayesian") && sw.tags.includes("bayesian")) s += 1;
-      if (needs.tasks.includes("ml") && sw.tags.includes("ml")) s += 2;
+      const canHandleCoding = LEVEL[needs.coding] >= LEVEL[sw.codingMin];
+      if (canHandleCoding){
+        lines.push(`Your coding level should be enough for this tool (minimum: ${sw.codingMin}).`);
+      } else {
+        lines.push(`This may be too demanding for your current coding level (needs at least: ${sw.codingMin}).`);
+      }
 
-      return { score: s, reasons };
+      // Cost and platform
+      if (needs.cost === 'free'){
+        if (sw.cost === 'free' || sw.cost === 'mixed'){
+          lines.push(`It fits your budget preference (free or accessible).`);
+        } else {
+          lines.push(`It requires a paid license, which conflicts with your budget preference.`);
+        }
+      }
+      if (needs.platform !== 'any'){
+        if (sw.platforms.includes(needs.platform)){
+          lines.push(`It runs on your platform (${needs.platform}).`);
+        } else {
+          lines.push(`It does not support your platform (${needs.platform}).`);
+        }
+      }
+
+      // Learning curve
+      if (needs.curve === 'low' && sw.learningCurve <= 2){
+        lines.push(`It is relatively quick to pick up (learning curve ${sw.learningCurve}/5).`);
+      } else if (needs.curve === 'low' && sw.learningCurve >= 3){
+        lines.push(`It may take longer to learn (learning curve ${sw.learningCurve}/5).`);
+      }
+
+      // Add a concise summary line
+      lines.push(`Overall fit score is ${breakdown.total.toFixed(1)} based on transparent criteria.`);
+
+      // Return top 4-6 lines
+      return lines.slice(0, 6);
     }
 
     // -----------------------------
-    // 3) Render results
+    // 中文說明 4：精準打分（分項計分 + 分數構成）
+    // 這會用在：排名、分數條、比較表排序（rank）。
     // -----------------------------
-    function render(recs) {
-      const out = document.getElementById("out");
-      out.innerHTML = "";
+    function score(sw, needs){
+      const breakdown = {
+        taskMatch: 0,
+        cost: 0,
+        style: 0,
+        codingFit: 0,
+        curveFit: 0,
+        platformFit: 0,
+        analysisBreadth: 0,
+        bayesianDepth: 0,
+        rmMixed: 0,
+        reproducibility: 0,
+        vizStrength: 0,
+        extendibility: 0,
+        docsQuality: 0,
+        community: 0,
+        courseRequirement: 0,
+        total: 0
+      };
 
-      if (!recs.length) {
-        out.innerHTML = `<p class="muted">No recommendations. Try changing your answers.</p>`;
-        return;
+      // Course requirement
+      if (needs.courseReq !== 'none'){
+        if (needs.courseReq === sw.id){
+          breakdown.courseRequirement += WEIGHTS.courseRequirement;
+        } else {
+          breakdown.courseRequirement -= WEIGHTS.courseRequirement * 0.6;
+        }
       }
 
-      recs.forEach((r, idx) => {
-        const sw = r.software;
-        const topReasons = r.reasons.slice(0, 3);
-        const html = `
-          <div class="rec">
-            <h3>
-              <span>#${idx + 1} ${sw.name} <span class="pill">score: ${r.score}</span></span>
-              <a href="${sw.url}" target="_blank" rel="noreferrer">Official site</a>
-            </h3>
-            <div class="muted">${sw.pros[0] ?? ""}</div>
-            <ul>
-              ${topReasons.map(x => `<li>${x}</li>`).join("")}
-            </ul>
-            <details style="margin-top:10px;">
-              <summary class="muted">More details</summary>
-              <div style="margin-top:8px;">
-                <div class="muted"><strong>Pros:</strong></div>
-                <ul>${sw.pros.map(x => `<li>${x}</li>`).join("")}</ul>
-                <div class="muted"><strong>Cons:</strong></div>
-                <ul>${sw.cons.map(x => `<li>${x}</li>`).join("")}</ul>
-              </div>
-            </details>
-          </div>
-        `;
-        out.insertAdjacentHTML("beforeend", html);
+      // Task match: count how many selected tasks are supported by tags
+      const hits = needs.tasks.filter(t => sw.tags.includes(t));
+      const miss = needs.tasks.length - hits.length;
+      breakdown.taskMatch += (hits.length * WEIGHTS.taskMatch) - (miss * WEIGHTS.taskMatch * 0.6);
+
+      // Cost
+      if (needs.cost === 'free'){
+        breakdown.cost += COST_OK(needs.cost, sw.cost) ? WEIGHTS.cost : -WEIGHTS.cost * 1.6;
+      } else {
+        breakdown.cost += WEIGHTS.cost * 0.2; // slight bump for 'any'
+      }
+
+      // Style
+      if (needs.style !== 'either'){
+        breakdown.style += (sw.style === needs.style || sw.style === 'both') ? WEIGHTS.style : -WEIGHTS.style * 0.8;
+      } else {
+        breakdown.style += WEIGHTS.style * 0.2;
+      }
+
+      // Coding fit
+      breakdown.codingFit += (LEVEL[needs.coding] >= LEVEL[sw.codingMin]) ? WEIGHTS.codingFit : -WEIGHTS.codingFit * 1.4;
+
+      // Learning curve fit: user tolerance vs tool difficulty
+      // Convert needs.curve to max acceptable difficulty
+      const tol = needs.curve === 'low' ? 2 : (needs.curve === 'mid' ? 3 : 5);
+      if (sw.learningCurve <= tol){
+        breakdown.curveFit += WEIGHTS.curveFit;
+      } else {
+        breakdown.curveFit -= WEIGHTS.curveFit * ((sw.learningCurve - tol) / 2);
+      }
+
+      // Platform fit (hard constraint)
+      if (needs.platform !== 'any'){
+        breakdown.platformFit += sw.platforms.includes(needs.platform) ? WEIGHTS.platformFit : -WEIGHTS.platformFit * 2.5;
+      } else {
+        breakdown.platformFit += WEIGHTS.platformFit * 0.2;
+      }
+
+      // Capability scores scaled to weights (0-5 normalized)
+      const norm = x => clamp(x, 0, 5) / 5;
+      breakdown.analysisBreadth += norm(sw.analysisBreadth) * WEIGHTS.analysisBreadth;
+      breakdown.bayesianDepth += (needs.tasks.includes('bayesian') ? norm(sw.bayesianDepth) : norm(sw.bayesianDepth) * 0.2) * WEIGHTS.bayesianDepth;
+      breakdown.rmMixed += (needs.tasks.includes('repeated') ? norm(sw.rmMixed) : norm(sw.rmMixed) * 0.2) * WEIGHTS.rmMixed;
+      breakdown.reproducibility += (needs.tasks.includes('repro') ? norm(sw.reproducibility) : norm(sw.reproducibility) * 0.2) * WEIGHTS.reproducibility;
+      breakdown.vizStrength += (needs.tasks.includes('viz_report') ? norm(sw.vizStrength) : norm(sw.vizStrength) * 0.2) * WEIGHTS.vizStrength;
+      breakdown.extendibility += norm(sw.extendibility) * WEIGHTS.extendibility;
+      breakdown.docsQuality += norm(sw.docsQuality) * WEIGHTS.docsQuality;
+      breakdown.community += norm(sw.community) * WEIGHTS.community;
+
+      // Total
+      breakdown.total = Object.entries(breakdown)
+        .filter(([k]) => k !== 'total')
+        .reduce((acc, [,v]) => acc + v, 0);
+
+      return breakdown;
+    }
+
+    // -----------------------------
+    // 中文說明 5：分享連結（把答案 encode 進 URL query）
+    // 這樣學生貼連結到群組，就能重現他們的選擇與結果。
+    // -----------------------------
+    function encodeState(needs){
+      const params = new URLSearchParams();
+      params.set('tasks', needs.tasks.join(','));
+      params.set('coding', needs.coding);
+      params.set('cost', needs.cost);
+      params.set('style', needs.style);
+      params.set('curve', needs.curve);
+      params.set('platform', needs.platform);
+      params.set('courseReq', needs.courseReq);
+
+      // weights: only store when differs meaningfully
+      const wDiff = {};
+      for (const [k,v] of Object.entries(WEIGHTS)){
+        const base = DEFAULT_WEIGHTS[k];
+        if (Math.abs(v - base) >= 0.11) wDiff[k] = v;
+      }
+      if (Object.keys(wDiff).length){
+        params.set('w', btoa(unescape(encodeURIComponent(JSON.stringify(wDiff)))));
+      }
+      return params.toString();
+    }
+
+    function decodeState(){
+      const params = new URLSearchParams(location.search);
+      if (![...params.keys()].length) return null;
+
+      const needs = {
+        tasks: (params.get('tasks') || '').split(',').filter(Boolean),
+        coding: params.get('coding') || 'none',
+        cost: params.get('cost') || 'free',
+        style: params.get('style') || 'gui',
+        curve: params.get('curve') || 'low',
+        platform: params.get('platform') || 'win',
+        courseReq: params.get('courseReq') || 'none'
+      };
+
+      // weights
+      const w = params.get('w');
+      if (w){
+        try{
+          const json = decodeURIComponent(escape(atob(w)));
+          const obj = JSON.parse(json);
+          WEIGHTS = { ...WEIGHTS, ...obj };
+        } catch(e){
+          // ignore
+        }
+      }
+      return needs;
+    }
+
+    function setFormFromNeeds(needs){
+      // tasks
+      document.querySelectorAll('input[name=\'tasks\']').forEach(x => x.checked = needs.tasks.includes(x.value));
+      // radios
+      const radios = ['coding','cost','style','curve','platform','courseReq'];
+      radios.forEach(name => {
+        const v = needs[name];
+        const el = document.querySelector(`input[name='${name}'][value='${v}']`);
+        if (el) el.checked = true;
       });
     }
 
-    function recommend() {
-      const needs = {
-        tasks: getCheckedValues("tasks"),
-        coding: getRadioValue("coding"),
-        cost: getRadioValue("cost"),
-        style: getRadioValue("style"),
-        curve: getRadioValue("curve"),
-        platform: getRadioValue("platform")
-      };
+    function collectNeedsFromForm(){
+      let tasks = getCheckedValues('tasks');
+      if (!tasks.length) tasks = ['basic_tests'];
 
-      // If user selected nothing, assume basic tests
-      if (!needs.tasks.length) needs.tasks = ["basic_tests"];
+      return {
+        tasks,
+        coding: getRadioValue('coding'),
+        cost: getRadioValue('cost'),
+        style: getRadioValue('style'),
+        curve: getRadioValue('curve'),
+        platform: getRadioValue('platform'),
+        courseReq: getRadioValue('courseReq')
+      };
+    }
+
+    // -----------------------------
+    // Render: recommendations
+    // -----------------------------
+    function renderRecs(scored){
+      const out = document.getElementById('out');
+      out.innerHTML = '';
+
+      if (!scored.length){
+        out.innerHTML = `<p class='muted'>No recommendations. Try changing your answers.</p>`;
+        return;
+      }
+
+      scored.slice(0,3).forEach((item, idx) => {
+        const sw = item.software;
+        const br = item.breakdown;
+
+        // Build score bar: show contribution ratio
+        // We'll normalize to a 0..100 range based on max abs contributions among top results
+        const parts = Object.entries(br)
+          .filter(([k]) => k !== 'total')
+          .map(([k,v]) => ({ k, v }));
+
+        const pos = parts.filter(p => p.v > 0).reduce((a,p)=>a+p.v,0);
+        const neg = Math.abs(parts.filter(p => p.v < 0).reduce((a,p)=>a+p.v,0));
+        const denom = pos + neg || 1;
+        const posPct = (pos / denom) * 100;
+
+        const reasons = makeReasonSentences(sw, window.__lastNeeds, br);
+
+        const kvs = `
+          <div class='kvs'>
+            <div class='kv'><b>Cost</b><code>${sw.cost}</code></div>
+            <div class='kv'><b>Style</b><code>${sw.style}</code></div>
+            <div class='kv'><b>Platforms</b><code>${sw.platforms.join(', ')}</code></div>
+            <div class='kv'><b>Analysis breadth</b><code>${sw.analysisBreadth}/5</code></div>
+            <div class='kv'><b>Bayesian depth</b><code>${sw.bayesianDepth}/5</code></div>
+            <div class='kv'><b>RM/mixed</b><code>${sw.rmMixed}/5</code></div>
+            <div class='kv'><b>Reproducibility</b><code>${sw.reproducibility}/5</code></div>
+            <div class='kv'><b>Visualization</b><code>${sw.vizStrength}/5</code></div>
+          </div>
+        `;
+
+        const breakdownList = Object.entries(br)
+          .filter(([k]) => k !== 'total')
+          .sort((a,b) => Math.abs(b[1]) - Math.abs(a[1]))
+          .slice(0, 8)
+          .map(([k,v]) => `<li><span class='mono'>${k}</span>: ${v.toFixed(2)}</li>`)
+          .join('');
+
+        const html = `
+          <div class='rec'>
+            <h3>
+              <span>#${idx + 1} ${sw.name} <span class='pill'>score: ${br.total.toFixed(1)}</span></span>
+              <a href='${sw.url}' target='_blank' rel='noreferrer'>Official site</a>
+            </h3>
+
+            <div class='muted'>Best for: ${sw.bestFor.join(', ')}.</div>
+
+            <div style='margin-top:10px;'>
+              <b style='font-size:12px;'>Fit balance</b>
+              <div class='bar' title='Positive vs negative contributions'>
+                <i style='width:${posPct.toFixed(0)}%'></i>
+              </div>
+              <div class='tiny'>Positive contribution: ${pos.toFixed(1)}. Negative contribution: ${neg.toFixed(1)}.</div>
+            </div>
+
+            <div style='margin-top:10px;'>
+              <b style='font-size:12px;'>Why this fits you</b>
+              <ul>${reasons.map(x => `<li>${x}</li>`).join('')}</ul>
+            </div>
+
+            ${kvs}
+
+            <details style='margin-top:10px;'>
+              <summary class='muted'>Transparent scoring breakdown</summary>
+              <ul style='margin-top:8px;'>${breakdownList}</ul>
+              <p class='tiny'>Higher positive numbers helped the rank; negative numbers penalized it.</p>
+            </details>
+          </div>
+        `;
+        out.insertAdjacentHTML('beforeend', html);
+      });
+    }
+
+    // -----------------------------
+    // Render: comparison table
+    // -----------------------------
+    function renderCompare(scored){
+      const tbody = document.getElementById('compareBody');
+      tbody.innerHTML = '';
+
+      const scope = document.getElementById('compareScope').value;
+      const sortBy = document.getElementById('sortBy').value;
+      const q = document.getElementById('searchBox').value.trim().toLowerCase();
+
+      let list = scored.map((x, i) => ({ ...x, rankIndex: i + 1 }));
+      if (scope === 'top3') list = list.slice(0,3);
+      if (q) list = list.filter(x => x.software.name.toLowerCase().includes(q));
+
+      const keyMap = {
+        rank: x => x.breakdown.total,
+        analysisBreadth: x => x.software.analysisBreadth,
+        bayesianDepth: x => x.software.bayesianDepth,
+        reproducibility: x => x.software.reproducibility,
+        vizStrength: x => x.software.vizStrength,
+        learningCurve: x => -x.software.learningCurve // invert so easier appears higher
+      };
+      const keyFn = keyMap[sortBy] || keyMap.rank;
+      list.sort((a,b) => keyFn(b) - keyFn(a));
+
+      list.forEach(item => {
+        const sw = item.software;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div><b>${sw.name}</b></div>
+            <div class='tiny'>Rank score: ${item.breakdown.total.toFixed(1)}</div>
+            <div class='tiny'><a href='${sw.url}' target='_blank' rel='noreferrer'>Official</a></div>
+          </td>
+          <td>${sw.cost}</td>
+          <td>${sw.style}</td>
+          <td>${sw.platforms.join(', ')}</td>
+          <td>${sw.bestFor.join(', ')}</td>
+          <td>${sw.analysisBreadth}/5</td>
+          <td>${sw.bayesianDepth}/5</td>
+          <td>${sw.rmMixed}/5</td>
+          <td>${sw.reproducibility}/5</td>
+          <td>${sw.vizStrength}/5</td>
+          <td>${sw.extendibility}/5</td>
+          <td>${sw.docsQuality}/5</td>
+          <td>${sw.community}/5</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (!list.length){
+        tbody.innerHTML = `<tr><td colspan='13' class='muted'>No rows match your filter.</td></tr>`;
+      }
+    }
+
+    // -----------------------------
+    // Run all
+    // -----------------------------
+    function runAll(needs, pushUrl=true){
+      window.__lastNeeds = needs;
 
       const scored = SOFTWARE.map(sw => {
-        const { score: sc, reasons } = score(sw, needs);
-        return { software: sw, score: sc, reasons };
-      }).sort((a, b) => b.score - a.score);
+        const breakdown = score(sw, needs);
+        return { software: sw, breakdown };
+      }).sort((a,b) => b.breakdown.total - a.breakdown.total);
 
-      render(scored.slice(0, 3));
+      window.__lastScored = scored;
+
+      renderRecs(scored);
+      renderCompare(scored);
+
+      // Update share link box + URL
+      const qs = encodeState(needs);
+      const share = location.origin + location.pathname + '?' + qs;
+      document.getElementById('shareUrl').value = share;
+
+      if (pushUrl){
+        history.replaceState(null, '', '?' + qs);
+      }
     }
 
-    function resetAll() {
-      document.querySelectorAll("input[type=checkbox]").forEach(x => x.checked = false);
-      // reset radios to defaults by reloading the page state
-      document.querySelector('input[name="coding"][value="none"]').checked = true;
-      document.querySelector('input[name="cost"][value="free"]').checked = true;
-      document.querySelector('input[name="style"][value="gui"]').checked = true;
-      document.querySelector('input[name="curve"][value="low"]').checked = true;
-      document.querySelector('input[name="platform"][value="win"]').checked = true;
-
-      const out = document.getElementById("out");
-      out.innerHTML = `<p class="muted">Your results will appear here.</p>`;
+    // -----------------------------
+    // Tabs
+    // -----------------------------
+    function setTab(tab){
+      const isRecs = tab === 'recs';
+      document.getElementById('tabRecs').setAttribute('aria-selected', isRecs ? 'true' : 'false');
+      document.getElementById('tabCompare').setAttribute('aria-selected', isRecs ? 'false' : 'true');
+      document.getElementById('paneRecs').style.display = isRecs ? '' : 'none';
+      document.getElementById('paneCompare').style.display = isRecs ? 'none' : '';
+      if (!isRecs && window.__lastScored) renderCompare(window.__lastScored);
     }
 
-    document.getElementById("btnRecommend").addEventListener("click", recommend);
-    document.getElementById("btnReset").addEventListener("click", resetAll);
+    // -----------------------------
+    // Copy helper
+    // -----------------------------
+    async function copyText(txt){
+      try{
+        await navigator.clipboard.writeText(txt);
+        return true;
+      } catch(e){
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        try{
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          return true;
+        } catch(err){
+          document.body.removeChild(ta);
+          return false;
+        }
+      }
+    }
+
+    // -----------------------------
+    // Reset
+    // -----------------------------
+    function resetAll(){
+      document.querySelectorAll('input[type=checkbox]').forEach(x => x.checked = false);
+      document.querySelector('input[name=\'coding\'][value=\'none\']').checked = true;
+      document.querySelector('input[name=\'cost\'][value=\'free\']').checked = true;
+      document.querySelector('input[name=\'style\'][value=\'gui\']').checked = true;
+      document.querySelector('input[name=\'curve\'][value=\'low\']').checked = true;
+      document.querySelector('input[name=\'platform\'][value=\'win\']').checked = true;
+      document.querySelector('input[name=\'courseReq\'][value=\'none\']').checked = true;
+
+      WEIGHTS = { ...DEFAULT_WEIGHTS };
+      buildWeightsUI();
+
+      const needs = collectNeedsFromForm();
+      runAll(needs);
+    }
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    buildWeightsUI();
+
+    // If URL has state, restore it
+    const fromUrl = decodeState();
+    if (fromUrl){
+      setFormFromNeeds(fromUrl);
+      buildWeightsUI();
+      runAll(fromUrl, false);
+    } else {
+      const needs = collectNeedsFromForm();
+      runAll(needs, false);
+    }
+
+    // Listeners
+    document.getElementById('btnRecommend').addEventListener('click', () => {
+      const needs = collectNeedsFromForm();
+      runAll(needs);
+    });
+    document.getElementById('btnReset').addEventListener('click', resetAll);
+
+    document.getElementById('tabRecs').addEventListener('click', () => setTab('recs'));
+    document.getElementById('tabCompare').addEventListener('click', () => setTab('compare'));
+
+    document.getElementById('compareScope').addEventListener('change', () => {
+      if (window.__lastScored) renderCompare(window.__lastScored);
+    });
+    document.getElementById('sortBy').addEventListener('change', () => {
+      if (window.__lastScored) renderCompare(window.__lastScored);
+    });
+    document.getElementById('searchBox').addEventListener('input', () => {
+      if (window.__lastScored) renderCompare(window.__lastScored);
+    });
+
+    document.getElementById('btnCopyUrl').addEventListener('click', async () => {
+      const url = document.getElementById('shareUrl').value;
+      const ok = await copyText(url);
+      alert(ok ? 'Copied.' : 'Copy failed.');
+    });
+
+    document.getElementById('btnShare').addEventListener('click', async () => {
+      const needs = collectNeedsFromForm();
+      runAll(needs); // ensure URL is updated
+      const url = document.getElementById('shareUrl').value;
+      const ok = await copyText(url);
+      alert(ok ? 'Share link copied.' : 'Copy failed.');
+    });
   </script>
 </body>
 </html>
