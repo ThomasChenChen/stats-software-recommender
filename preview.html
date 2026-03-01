@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stats Software Recommender (Psych Students)</title>
+  <style>
+    :root { --radius: 14px; --shadow: 0 10px 30px rgba(0,0,0,.08); }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
+    header { padding: 28px 18px; background: white; box-shadow: var(--shadow); }
+    main { max-width: 980px; margin: 0 auto; padding: 18px; }
+    h1 { margin: 0 0 6px; font-size: 22px; }
+    p.lead { margin: 0; color: #444; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
+    @media (min-width: 860px) { .grid { grid-template-columns: 1.1fr .9fr; } }
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+    .card h2 { margin: 0 0 10px; font-size: 16px; }
+    .q { margin: 12px 0; padding: 12px; border: 1px solid #eee; border-radius: 12px; }
+    .q legend { font-weight: 650; }
+    label { display: block; margin: 6px 0; cursor: pointer; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button { border: 0; border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 650; }
+    button.primary { background: #111; color: white; }
+    button.ghost { background: #eef1ff; color: #111; }
+    .results { display: grid; gap: 12px; }
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #f1f3f5; font-size: 12px; margin-left: 8px; }
+    .rec { border: 1px solid #eee; border-radius: 14px; padding: 14px; }
+    .rec h3 { margin: 0 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .muted { color: #555; font-size: 13px; }
+    ul { margin: 8px 0 0 18px; }
+    .footer { margin-top: 20px; color: #666; font-size: 12px; }
+    a { color: inherit; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Stats Software Recommender</h1>
+    <p class="lead">Answer a few questions to get the best-fit tools for your psychology stats workflow.</p>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Questions</h2>
+
+      <!-- Q1: Tasks -->
+      <fieldset class="q">
+        <legend>1) What do you need to do? (select all that apply)</legend>
+        <label><input type="checkbox" name="tasks" value="basic_tests"> Basic tests (t-test / ANOVA / regression)</label>
+        <label><input type="checkbox" name="tasks" value="repeated"> Repeated measures / mixed designs</label>
+        <label><input type="checkbox" name="tasks" value="reliability"> Scale reliability / EFA (intro level)</label>
+        <label><input type="checkbox" name="tasks" value="bayesian"> Bayesian analysis</label>
+        <label><input type="checkbox" name="tasks" value="viz_report"> Nice figures / report-ready output</label>
+        <label><input type="checkbox" name="tasks" value="ml"> Machine learning / prediction</label>
+      </fieldset>
+
+      <!-- Q2: Coding -->
+      <fieldset class="q">
+        <legend>2) Coding experience</legend>
+        <label><input type="radio" name="coding" value="none" checked> No coding</label>
+        <label><input type="radio" name="coding" value="some"> A little</label>
+        <label><input type="radio" name="coding" value="high"> Comfortable</label>
+      </fieldset>
+
+      <!-- Q3: Cost -->
+      <fieldset class="q">
+        <legend>3) Budget</legend>
+        <label><input type="radio" name="cost" value="free" checked> Must be free</label>
+        <label><input type="radio" name="cost" value="any"> Paid is OK</label>
+      </fieldset>
+
+      <!-- Q4: Interface preference -->
+      <fieldset class="q">
+        <legend>4) Preferred style</legend>
+        <label><input type="radio" name="style" value="gui" checked> Clickable GUI</label>
+        <label><input type="radio" name="style" value="code"> Code</label>
+        <label><input type="radio" name="style" value="either"> Either</label>
+      </fieldset>
+
+      <!-- Q5: Learning curve -->
+      <fieldset class="q">
+        <legend>5) Learning curve tolerance</legend>
+        <label><input type="radio" name="curve" value="low" checked> I need something fast</label>
+        <label><input type="radio" name="curve" value="mid"> I can learn for a few days</label>
+        <label><input type="radio" name="curve" value="high"> I can invest long-term</label>
+      </fieldset>
+
+      <!-- Q6: Platform -->
+      <fieldset class="q">
+        <legend>6) Platform</legend>
+        <label><input type="radio" name="platform" value="win" checked> Windows</label>
+        <label><input type="radio" name="platform" value="mac"> macOS</label>
+        <label><input type="radio" name="platform" value="any"> Both / not sure</label>
+      </fieldset>
+
+      <div class="row">
+        <button class="primary" id="btnRecommend">Get recommendations</button>
+        <button class="ghost" id="btnReset" type="button">Reset</button>
+      </div>
+
+      <div class="footer">
+        <p><strong>Note:</strong> This tool provides suggestions, not statistical consulting. Always follow your course requirements.</p>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2>Recommendations</h2>
+      <div id="out" class="results">
+        <p class="muted">Your results will appear here.</p>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // -----------------------------
+    // 1) Software "database"
+    // -----------------------------
+    // 你可以在這裡新增/刪除軟體。每個軟體是一個物件：
+    // - tags: 支援任務
+    // - cost: "free" / "paid" / "mixed"
+    // - style: "gui" / "code" / "both"
+    // - codingMin: "none" / "some" / "high"
+    // - curve: "low" / "mid" / "high" (學習曲線)
+    // - platforms: ["win","mac","linux","web"]
+    // - pros/cons: 用來生成推薦理由（英文內容）
+    const SOFTWARE = [
+      {
+        name: "JASP",
+        url: "https://jasp-stats.org/",
+        tags: ["basic_tests", "reliability", "bayesian", "viz_report"],
+        cost: "free",
+        style: "gui",
+        codingMin: "none",
+        curve: "low",
+        platforms: ["win", "mac", "linux"],
+        pros: [
+          "Beginner-friendly GUI",
+          "Great for Bayesian analysis without coding",
+          "Clean tables suitable for reports"
+        ],
+        cons: [
+          "Less flexible for custom pipelines compared to R/Python"
+        ]
+      },
+      {
+        name: "jamovi",
+        url: "https://www.jamovi.org/",
+        tags: ["basic_tests", "reliability", "viz_report"],
+        cost: "free",
+        style: "gui",
+        codingMin: "none",
+        curve: "low",
+        platforms: ["win", "mac", "linux"],
+        pros: [
+          "Very easy to learn",
+          "Expandable via modules",
+          "Good for common analyses in classes"
+        ],
+        cons: [
+          "Advanced modeling options may require R"
+        ]
+      },
+      {
+        name: "SPSS",
+        url: "https://www.ibm.com/spss",
+        tags: ["basic_tests", "reliability", "repeated", "viz_report"],
+        cost: "paid",
+        style: "gui",
+        codingMin: "none",
+        curve: "low",
+        platforms: ["win", "mac"],
+        pros: [
+          "Common in psychology courses",
+          "GUI workflows are straightforward",
+          "Strong for standard tests and reliability"
+        ],
+        cons: [
+          "Paid license required",
+          "Less transparent / reproducible than code-based tools"
+        ]
+      },
+      {
+        name: "R (RStudio)",
+        url: "https://posit.co/download/rstudio-desktop/",
+        tags: ["basic_tests", "repeated", "reliability", "viz_report"],
+        cost: "free",
+        style: "code",
+        codingMin: "some",
+        curve: "high",
+        platforms: ["win", "mac", "linux"],
+        pros: [
+          "Extremely flexible and widely used in research",
+          "Best for reproducible analysis pipelines",
+          "Huge ecosystem for stats and graphics"
+        ],
+        cons: [
+          "Steeper learning curve for beginners"
+        ]
+      },
+      {
+        name: "Python",
+        url: "https://www.python.org/",
+        tags: ["basic_tests", "viz_report", "ml"],
+        cost: "free",
+        style: "code",
+        codingMin: "some",
+        curve: "high",
+        platforms: ["win", "mac", "linux"],
+        pros: [
+          "Strong for machine learning and automation",
+          "Great for end-to-end projects (data → model → app)",
+          "Good for reproducibility"
+        ],
+        cons: [
+          "Not as 'stats-first' as R for many psych workflows"
+        ]
+      },
+      {
+        name: "GraphPad Prism",
+        url: "https://www.graphpad.com/",
+        tags: ["basic_tests", "viz_report"],
+        cost: "paid",
+        style: "gui",
+        codingMin: "none",
+        curve: "low",
+        platforms: ["win", "mac"],
+        pros: [
+          "Very fast for publication-style plots",
+          "Simple workflows for common tests"
+        ],
+        cons: [
+          "Paid, and less flexible for complex models"
+        ]
+      }
+    ];
+
+    const LEVEL = { none: 0, some: 1, high: 2 };
+    const CURVE = { low: 0, mid: 1, high: 2 };
+
+    function getCheckedValues(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(x => x.value);
+    }
+    function getRadioValue(name) {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : null;
+    }
+
+    // -----------------------------
+    // 2) Scoring function
+    // -----------------------------
+    // 中文解釋：把使用者需求轉成分數。分數越高越推薦。
+    function score(sw, needs) {
+      let s = 0;
+      const reasons = [];
+
+      // Tasks match
+      const hits = needs.tasks.filter(t => sw.tags.includes(t));
+      if (hits.length) {
+        s += hits.length * 3;
+        reasons.push(`Matches your tasks: ${hits.join(", ")}`);
+      } else {
+        s -= 2;
+        reasons.push("Limited match for your selected tasks");
+      }
+
+      // Cost preference
+      if (needs.cost === "free") {
+        if (sw.cost === "free" || sw.cost === "mixed") {
+          s += 2;
+          reasons.push("Fits your budget: free or accessible");
+        } else {
+          s -= 4;
+          reasons.push("May not fit your budget (paid license)");
+        }
+      } else {
+        // paid ok
+        s += 0;
+      }
+
+      // Interface preference
+      if (needs.style !== "either") {
+        if (sw.style === needs.style || sw.style === "both") {
+          s += 2;
+          reasons.push(`Fits your preference: ${needs.style.toUpperCase()}`);
+        } else {
+          s -= 2;
+          reasons.push(`Does not match preference: ${needs.style.toUpperCase()}`);
+        }
+      }
+
+      // Coding ability vs requirement
+      if (LEVEL[needs.coding] >= LEVEL[sw.codingMin]) {
+        s += 1;
+        reasons.push("Learning barrier seems acceptable");
+      } else {
+        s -= 4;
+        reasons.push("Likely too difficult given your coding experience");
+      }
+
+      // Learning curve tolerance
+      if (CURVE[needs.curve] >= CURVE[sw.curve]) {
+        s += 1;
+        reasons.push("Learning curve fits your tolerance");
+      } else {
+        s -= 2;
+        reasons.push("Learning curve may be too steep");
+      }
+
+      // Platform support
+      if (needs.platform !== "any") {
+        if (sw.platforms.includes(needs.platform)) {
+          s += 1;
+          reasons.push(`Supports your platform: ${needs.platform}`);
+        } else {
+          s -= 6;
+          reasons.push(`Not available on your platform: ${needs.platform}`);
+        }
+      }
+
+      // Specific nudges
+      if (needs.tasks.includes("bayesian") && sw.tags.includes("bayesian")) s += 1;
+      if (needs.tasks.includes("ml") && sw.tags.includes("ml")) s += 2;
+
+      return { score: s, reasons };
+    }
+
+    // -----------------------------
+    // 3) Render results
+    // -----------------------------
+    function render(recs) {
+      const out = document.getElementById("out");
+      out.innerHTML = "";
+
+      if (!recs.length) {
+        out.innerHTML = `<p class="muted">No recommendations. Try changing your answers.</p>`;
+        return;
+      }
+
+      recs.forEach((r, idx) => {
+        const sw = r.software;
+        const topReasons = r.reasons.slice(0, 3);
+        const html = `
+          <div class="rec">
+            <h3>
+              <span>#${idx + 1} ${sw.name} <span class="pill">score: ${r.score}</span></span>
+              <a href="${sw.url}" target="_blank" rel="noreferrer">Official site</a>
+            </h3>
+            <div class="muted">${sw.pros[0] ?? ""}</div>
+            <ul>
+              ${topReasons.map(x => `<li>${x}</li>`).join("")}
+            </ul>
+            <details style="margin-top:10px;">
+              <summary class="muted">More details</summary>
+              <div style="margin-top:8px;">
+                <div class="muted"><strong>Pros:</strong></div>
+                <ul>${sw.pros.map(x => `<li>${x}</li>`).join("")}</ul>
+                <div class="muted"><strong>Cons:</strong></div>
+                <ul>${sw.cons.map(x => `<li>${x}</li>`).join("")}</ul>
+              </div>
+            </details>
+          </div>
+        `;
+        out.insertAdjacentHTML("beforeend", html);
+      });
+    }
+
+    function recommend() {
+      const needs = {
+        tasks: getCheckedValues("tasks"),
+        coding: getRadioValue("coding"),
+        cost: getRadioValue("cost"),
+        style: getRadioValue("style"),
+        curve: getRadioValue("curve"),
+        platform: getRadioValue("platform")
+      };
+
+      // If user selected nothing, assume basic tests
+      if (!needs.tasks.length) needs.tasks = ["basic_tests"];
+
+      const scored = SOFTWARE.map(sw => {
+        const { score: sc, reasons } = score(sw, needs);
+        return { software: sw, score: sc, reasons };
+      }).sort((a, b) => b.score - a.score);
+
+      render(scored.slice(0, 3));
+    }
+
+    function resetAll() {
+      document.querySelectorAll("input[type=checkbox]").forEach(x => x.checked = false);
+      // reset radios to defaults by reloading the page state
+      document.querySelector('input[name="coding"][value="none"]').checked = true;
+      document.querySelector('input[name="cost"][value="free"]').checked = true;
+      document.querySelector('input[name="style"][value="gui"]').checked = true;
+      document.querySelector('input[name="curve"][value="low"]').checked = true;
+      document.querySelector('input[name="platform"][value="win"]').checked = true;
+
+      const out = document.getElementById("out");
+      out.innerHTML = `<p class="muted">Your results will appear here.</p>`;
+    }
+
+    document.getElementById("btnRecommend").addEventListener("click", recommend);
+    document.getElementById("btnReset").addEventListener("click", resetAll);
+  </script>
+</body>
+</html>
